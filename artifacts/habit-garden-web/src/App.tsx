@@ -147,6 +147,8 @@ function App() {
             <Switch>
               <Route path="/sign-in/*?" component={SignInPage} />
               <Route path="/sign-up/*?" component={SignUpPage} />
+              <Route path="/privacy">{() => <LegalPage kind="privacy" />}</Route>
+              <Route path="/terms">{() => <LegalPage kind="terms" />}</Route>
               <Route path="/*" component={Shell} />
             </Switch>
             <Toaster />
@@ -157,6 +159,49 @@ function App() {
   );
 }
 
+function LegalPage({ kind }: { kind: 'privacy' | 'terms' }) {
+  const privacy = kind === 'privacy';
+  useEffect(() => {
+    document.title = privacy ? 'Privacy | Habit Garden' : 'Terms | Habit Garden';
+  }, [privacy]);
+
+  return (
+    <main className="min-h-screen bg-background px-5 py-12 text-foreground sm:py-20">
+      <article className="mx-auto max-w-3xl rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-10">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-primary"><Leaf size={18} /> Habit Garden</Link>
+        <h1 className="mt-8 font-display text-4xl font-extrabold tracking-tight">
+          {privacy ? 'Privacy Policy' : 'Terms of Use'}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">Last updated: September 19, 2026</p>
+
+        {privacy ? (
+          <div className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground">
+            <section><h2 className="text-xl font-bold text-foreground">Summary</h2><p className="mt-2">Habit Garden is local-first. Habits and check-ins stay on your device when you use the app without an account. Account and cloud processing are used only for optional account, sync, and Pro features. We do not sell personal data or use it for personalized advertising.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Data we process</h2><p className="mt-2">When you use an account, we process your account identifier and email address for authentication. If you actively use Cloud Sync, habits, notes, and check-ins are stored. For Pro, Apple, Google, and RevenueCat process purchase status, product identifiers, and a pseudonymous customer identifier. Location or photo data is used only when you explicitly select it for the relevant app feature.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Purposes and legal basis</h2><p className="mt-2">Data is processed to provide requested features and perform our agreement with you. Security and diagnostic data may be processed based on our legitimate interest in providing a secure and stable service.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Service providers</h2><p className="mt-2">We use Clerk for authentication, Replit for hosting and app infrastructure, RevenueCat for subscription status, and the Apple App Store and Google Play for payments. These providers process data under their own privacy terms and may process data outside your country.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Retention and deletion</h2><p className="mt-2">You can delete local data in Settings. Signed-in users can also permanently delete their account and cloud-synced Habit Garden data from Settings. Legal retention requirements for payment records remain unaffected.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Your rights and contact</h2><p className="mt-2">You may request access, correction, deletion, restriction, portability, or object to processing, and you may contact a data protection authority. Use the support contact shown in the relevant app store listing for privacy requests.</p></section>
+          </div>
+        ) : (
+          <div className="mt-10 space-y-8 text-sm leading-7 text-muted-foreground">
+            <section><h2 className="text-xl font-bold text-foreground">Scope</h2><p className="mt-2">These terms apply to your use of Habit Garden. You may use the app for private, lawful purposes. The app is not a substitute for medical advice.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Habit Garden Pro</h2><p className="mt-2">Pro is an automatically renewing monthly subscription. The price and currency are displayed in the App Store or Google Play before purchase. Payment is charged to your store account. The subscription renews unless cancelled at least 24 hours before the current period ends.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Cancellation and restoration</h2><p className="mt-2">Manage or cancel your subscription in your Apple or Google account subscription settings. Use “Restore Purchases” to restore an existing entitlement. Refunds follow the rules of the relevant store.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Availability</h2><p className="mt-2">We work to provide a reliable service but do not guarantee uninterrupted availability. Features may change for security, legal, or product reasons. Back up your local data regularly.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Store terms</h2><p className="mt-2">The Apple App Store or Google Play terms also apply. On iOS, Apple’s standard end-user license agreement applies in addition.</p></section>
+            <section><h2 className="text-xl font-bold text-foreground">Contact</h2><p className="mt-2">Use the support contact shown in the relevant app store listing for support or legal requests.</p></section>
+          </div>
+        )}
+
+        <div className="mt-10 flex gap-5 border-t border-border pt-6 text-sm font-bold">
+          <Link href="/privacy" className="text-primary">Privacy</Link>
+          <Link href="/terms" className="text-primary">Terms</Link>
+        </div>
+      </article>
+    </main>
+  );
+}
 function Shell() {
   const [data, setData] = useState<GardenData>(() => loadGarden());
   const [location] = useLocation();
@@ -179,6 +224,7 @@ function Shell() {
     { href: '/', label: 'Today', icon: CalendarDays },
     { href: '/habits', label: 'My habits', icon: ListChecks },
     { href: '/insights', label: 'Insights', icon: BarChart3 },
+    { href: '/upgrade', label: 'Free & Pro', icon: Star },
   ];
   return <div className="min-h-[100dvh] bg-background">
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[252px] flex-col border-r border-sidebar-border bg-sidebar px-5 py-6 text-sidebar-foreground lg:flex">
@@ -233,6 +279,12 @@ function InsightsPage({ data, habits }: { data: GardenData; habits: Habit[] }) {
   const best = habits.reduce((winner, habit) => currentStreak(habit, data.checkIns) > currentStreak(winner, data.checkIns) ? habit : winner, habits[0]); 
   
   const { isSignedIn } = useUser();
+  const billing = useGetBillingStatus({
+    query: {
+      queryKey: getGetBillingStatusQueryKey(),
+      enabled: !!isSignedIn,
+    },
+  });
   const { mutate: reviewHabits, data: reviewData, isPending } = useReviewHabits();
 
   const handleReview = () => {
@@ -254,9 +306,13 @@ function InsightsPage({ data, habits }: { data: GardenData; habits: Habit[] }) {
       </div>
       <Sparkles className="text-primary/60" size={24} />
     </div>
-    {isSignedIn ? (
+     {isSignedIn ? (
        <div className="mt-5">
-         {!reviewData ? (
+          {billing.isLoading ? (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
+              Checking Pro access…
+            </div>
+          ) : billing.data?.isPro ? !reviewData ? (
            <Button onClick={handleReview} disabled={isPending} testId="btn-ai-review">
              {isPending ? 'Reflecting...' : 'Request a gentle review'}
            </Button>
@@ -270,7 +326,17 @@ function InsightsPage({ data, habits }: { data: GardenData; habits: Habit[] }) {
                </ul>
              )}
            </div>
-         )}
+          ) : (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center">
+              <p className="text-sm font-bold">AI Reflection is a Pro feature.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Unlock Pro to send your habit data for a private AI review.
+              </p>
+              <Link href="/upgrade" className="mt-4 inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">
+                View Pro
+              </Link>
+            </div>
+          )}
        </div>
     ) : (
        <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/30 p-5 text-center flex flex-col items-center">
@@ -386,13 +452,13 @@ function UpgradePage() {
            </ul>
             <div className="mt-10 space-y-3">
               {!isSignedIn ? (
-                 <Link href="/sign-in" className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">Anmelden und Pro-Status prüfen</Link>
+                 <Link href="/sign-in" className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[0_8px_25px_hsl(var(--primary)/.28)]">Sign in to check Pro status</Link>
               ) : billing.data?.isPro ? (
-                 <p className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-sm font-bold text-primary">Pro ist für dein Konto aktiv.</p>
+                 <p className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-sm font-bold text-primary">Pro is active for your account.</p>
               ) : (
-                 <p className="rounded-xl border border-border bg-muted p-3 text-center text-sm font-bold text-foreground">Kaufe Pro in der Android- oder iPhone-App.</p>
+                 <p className="rounded-xl bg-primary p-3 text-center text-sm font-bold text-primary-foreground shadow-[0_8px_25px_hsl(var(--primary)/.28)]">Get Pro in the Android or iPhone app</p>
               )}
-               <p className="text-xs leading-5 text-muted-foreground">Zahlungen und Abos werden ausschließlich über Google Play oder den Apple App Store verwaltet. Melde dich in der App und auf der Website mit demselben Konto an, damit Pro überall erkannt wird.</p>
+               <p className="text-xs leading-5 text-muted-foreground">Payments and subscriptions are managed through Google Play or the Apple App Store. Sign in to the app and website with the same account to use Pro everywhere.</p>
             </div>
          </Card>
       </div>
@@ -400,8 +466,8 @@ function UpgradePage() {
       <Card className="mt-10 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8">
           <div>
-             <h3 className="font-display text-lg font-extrabold tracking-tight">Spendenbox & Einnahmen</h3>
-             <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-sm">Alle über Pro eingegangenen Einnahmen werden transparent zusammengefasst. Zahlungen und Auszahlungen laufen ausschließlich über Google Play und den Apple App Store.</p>
+             <h3 className="font-display text-lg font-extrabold tracking-tight">Support & revenue</h3>
+             <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-sm">Revenue from Pro is summarized transparently. Payments and payouts are handled exclusively by Google Play and the Apple App Store.</p>
           </div>
           <div className="flex gap-3 sm:gap-4 shrink-0">
             <div className="rounded-2xl bg-muted/50 p-4 text-center min-w-[110px]">
@@ -409,7 +475,7 @@ function UpgradePage() {
                <p className="font-display text-2xl font-extrabold text-foreground">{isLoading ? '...' : revenue?.activeSubscriptions ?? 0}</p>
             </div>
             <div className="rounded-2xl bg-primary/10 p-4 text-center min-w-[110px]">
-                <p className="text-[10px] font-bold uppercase text-primary/70 tracking-wider mb-1">Gesamteinnahmen</p>
+                <p className="text-[10px] font-bold uppercase text-primary/70 tracking-wider mb-1">Total revenue</p>
                 <p className="font-display text-2xl font-extrabold text-primary">{isLoading ? '...' : `$${Number(revenue?.totalRevenueUsd ?? 0).toFixed(2)}`}</p>
             </div>
           </div>
