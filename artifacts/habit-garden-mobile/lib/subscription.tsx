@@ -4,6 +4,7 @@ import Purchases from "react-native-purchases";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { useUser } from "@clerk/expo";
+import { getGetBillingStatusQueryKey, useGetBillingStatus } from "@workspace/api-client-react";
 
 const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
@@ -34,6 +35,13 @@ export function initializeRevenueCat() {
 
 function useSubscriptionContext() {
   const { user } = useUser();
+  const stripeStatusQuery = useGetBillingStatus({
+    query: {
+      queryKey: [...getGetBillingStatusQueryKey(), user?.id ?? "signed-out"],
+      enabled: !!user?.id,
+      staleTime: 60 * 1000,
+    },
+  });
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
@@ -83,13 +91,14 @@ function useSubscriptionContext() {
     },
   });
 
-  const isPro = customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
+  const hasRevenueCatPro = customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
+  const isPro = hasRevenueCatPro || stripeStatusQuery.data?.isPro === true;
 
   return {
     customerInfo: customerInfoQuery.data,
     offerings: offeringsQuery.data,
     isPro,
-    isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading,
+    isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading || (!!user?.id && stripeStatusQuery.isLoading),
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,
