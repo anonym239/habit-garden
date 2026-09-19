@@ -23,8 +23,8 @@ jobs:
     env:
       CI: "1"
       EXPO_PUBLIC_DOMAIN: open-habit-tracker.replit.app
-      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: ${{ secrets.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY }}
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: ${{ vars.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY }}
 
     steps:
       - name: Check out repository
@@ -50,11 +50,11 @@ jobs:
       - name: Verify required configuration
         run: |
           test -n "$EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY" || {
-            echo "::error::Missing GitHub secret EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY"
+            echo "::error::Missing GitHub variable EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY"
             exit 1
           }
           test -n "$EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY" || {
-            echo "::error::Missing GitHub secret EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY"
+            echo "::error::Missing GitHub variable EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY"
             exit 1
           }
 
