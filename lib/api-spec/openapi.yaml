@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: garden
+    description: Optional Pro cloud sync
+  - name: ai
+    description: AI habit coaching
+  - name: revenue
+    description: Transparent community revenue
+  - name: billing
+    description: Secure Stripe Pro billing
 paths:
   /healthz:
     get:
@@ -24,7 +32,132 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /garden/{platform}:
+    get:
+      operationId: getGarden
+      tags: [garden]
+      summary: Load a signed-in user's synced garden
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+      responses:
+        "200":
+          description: Synced garden or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GardenSync"
+        "401":
+          description: Authentication required
+    put:
+      operationId: saveGarden
+      tags: [garden]
+      summary: Save a signed-in user's garden
+      parameters:
+        - $ref: "#/components/parameters/Platform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GardenInput"
+      responses:
+        "200":
+          description: Saved garden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GardenSync"
+        "401":
+          description: Authentication required
+  /ai/habit-review:
+    post:
+      operationId: reviewHabits
+      tags: [ai]
+      summary: Review habits and suggest gentle improvements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HabitReviewInput"
+      responses:
+        "200":
+          description: AI review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HabitReview"
+        "401":
+          description: Authentication required
+  /revenue:
+    get:
+      operationId: getRevenue
+      tags: [revenue]
+      summary: Public subscription revenue transparency
+      responses:
+        "200":
+          description: Current RevenueCat totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueSummary"
+  /billing/status:
+    get:
+      operationId: getBillingStatus
+      tags: [billing]
+      summary: Check whether the signed-in user has an active Stripe Pro subscription
+      responses:
+        "200":
+          description: Billing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingStatus"
+        "401":
+          description: Authentication required
+  /billing/checkout:
+    post:
+      operationId: createBillingCheckout
+      tags: [billing]
+      summary: Create a secure hosted Stripe Checkout session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingRedirectInput"
+      responses:
+        "200":
+          description: Checkout redirect URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRedirect"
+        "401":
+          description: Authentication required
+  /billing/portal:
+    post:
+      operationId: createBillingPortal
+      tags: [billing]
+      summary: Create a Stripe subscription management portal session
+      responses:
+        "200":
+          description: Portal redirect URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRedirect"
+        "401":
+          description: Authentication required
 components:
+  parameters:
+    Platform:
+      name: platform
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [web, mobile]
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +166,91 @@ components:
           type: string
       required:
         - status
+    GardenInput:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    GardenSync:
+      type: object
+      required: [platform, data, updatedAt]
+      properties:
+        platform:
+          type: string
+          enum: [web, mobile]
+        data:
+          type: object
+          additionalProperties: true
+        updatedAt:
+          type: string
+          format: date-time
+    HabitReviewInput:
+      type: object
+      required: [habits]
+      properties:
+        habits:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 120
+              note:
+                type: string
+                maxLength: 500
+              targetPerWeek:
+                type: integer
+                minimum: 1
+                maximum: 7
+        locale:
+          type: string
+          default: de
+    HabitReview:
+      type: object
+      required: [summary, suggestions]
+      properties:
+        summary:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+    RevenueSummary:
+      type: object
+      required: [totalRevenueUsd, activeSubscriptions, updatedAt]
+      properties:
+        totalRevenueUsd:
+          type: number
+        activeSubscriptions:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    BillingStatus:
+      type: object
+      required: [isPro]
+      properties:
+        isPro:
+          type: boolean
+    BillingRedirectInput:
+      type: object
+      properties:
+        returnPath:
+          type: string
+          pattern: "^/"
+          default: /upgrade
+    BillingRedirect:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
 

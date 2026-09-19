@@ -1,0 +1,29 @@
+modules = ["nodejs-24"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = "goog_GlYAGzaKWjBvFLwviDRNkfsvGwa"
+EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = "test_PZWUMlHHhIIwhBJaPyQcrWkooCZ"
+REVENUECAT_GOOGLE_PLAY_STORE_APP_ID = "app7e22334c06"
+REVENUECAT_PROJECT_ID = "proj055d4118"
+REVENUECAT_TEST_STORE_APP_ID = "app5e7c5d894d"

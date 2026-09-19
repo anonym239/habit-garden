@@ -19,6 +19,7 @@ type HabitState = {
   deleteHabit: (id: string) => void;
   toggleToday: (id: string) => void;
   reset: () => void;
+  setAll: (habits: Habit[], checkIns: Record<string, string[]>) => void;
 };
 
 const STORAGE_KEY = 'habit-garden-v1';
@@ -74,6 +75,10 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
     reset: () => {
       setHabits([]);
       setCheckIns({});
+    },
+    setAll: (newHabits, newCheckIns) => {
+      setHabits(newHabits);
+      setCheckIns(newCheckIns);
     },
   }), [habits, checkIns, hydrated]);
 

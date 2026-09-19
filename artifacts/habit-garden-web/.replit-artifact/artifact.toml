@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Habit Garden"
+description = "A warm, local-first open source habit tracker for people who want steady routines without pressure. Includes daily check-ins, streaks, weekly progress, reflections, and export/import."
+version = "1.0.0"
+id = "artifacts/habit-garden-web"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25479
+
+[services.development]
+run = "pnpm --filter @workspace/habit-garden-web run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/habit-garden-web", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/habit-garden-web/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25479"
+BASE_PATH = "/"
