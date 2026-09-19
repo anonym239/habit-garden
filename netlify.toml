@@ -1,0 +1,8 @@
+[build]
+  command = "PORT=4173 BASE_PATH=/ pnpm --filter @workspace/habit-garden-web run build"
+  publish = "artifacts/habit-garden-web/dist/public"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
