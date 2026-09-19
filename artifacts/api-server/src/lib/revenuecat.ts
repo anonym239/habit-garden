@@ -1,5 +1,4 @@
 import { ReplitConnectors } from "@replit/connectors-sdk";
-import { hasStripeProSubscription } from "./stripePro";
 
 const connectors = new ReplitConnectors();
 let proEntitlementId: string | undefined;
@@ -37,9 +36,5 @@ async function hasRevenueCatProEntitlement(userId: string): Promise<boolean> {
 }
 
 export async function hasProEntitlement(userId: string): Promise<boolean> {
-  const [revenueCat, stripe] = await Promise.all([
-    hasRevenueCatProEntitlement(userId),
-    hasStripeProSubscription(userId),
-  ]);
-  return revenueCat || stripe;
+  return hasRevenueCatProEntitlement(userId);
 }

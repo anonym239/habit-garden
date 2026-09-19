@@ -8,6 +8,7 @@ import { getGetBillingStatusQueryKey, useGetBillingStatus } from "@workspace/api
 
 const REVENUECAT_TEST_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY;
 const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
+const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
 
 export const REVENUECAT_ENTITLEMENT_IDENTIFIER = "pro";
 
@@ -17,6 +18,9 @@ function getRevenueCatApiKey() {
   }
   if (Platform.OS === "android") {
     return REVENUECAT_ANDROID_API_KEY;
+  }
+  if (Platform.OS === "ios") {
+    return REVENUECAT_IOS_API_KEY;
   }
   return REVENUECAT_TEST_API_KEY;
 }
@@ -35,7 +39,7 @@ export function initializeRevenueCat() {
 
 function useSubscriptionContext() {
   const { user } = useUser();
-  const stripeStatusQuery = useGetBillingStatus({
+  const serverStatusQuery = useGetBillingStatus({
     query: {
       queryKey: [...getGetBillingStatusQueryKey(), user?.id ?? "signed-out"],
       enabled: !!user?.id,
@@ -92,13 +96,13 @@ function useSubscriptionContext() {
   });
 
   const hasRevenueCatPro = customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
-  const isPro = hasRevenueCatPro || stripeStatusQuery.data?.isPro === true;
+  const isPro = hasRevenueCatPro || serverStatusQuery.data?.isPro === true;
 
   return {
     customerInfo: customerInfoQuery.data,
     offerings: offeringsQuery.data,
     isPro,
-    isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading || (!!user?.id && stripeStatusQuery.isLoading),
+    isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading || (!!user?.id && serverStatusQuery.isLoading),
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,

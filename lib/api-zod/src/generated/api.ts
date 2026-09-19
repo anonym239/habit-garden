@@ -88,34 +88,10 @@ export const GetRevenueResponse = zod.object({
 
 
 /**
- * @summary Check whether the signed-in user has an active Stripe Pro subscription
+ * @summary Check whether the signed-in user has an active app-store Pro subscription
  */
 export const GetBillingStatusResponse = zod.object({
   "isPro": zod.boolean()
-})
-
-
-/**
- * @summary Create a secure hosted Stripe Checkout session
- */
-export const createBillingCheckoutBodyReturnPathDefault = `/upgrade`;
-export const createBillingCheckoutBodyReturnPathRegExp = new RegExp('^');
-
-
-export const CreateBillingCheckoutBody = zod.object({
-  "returnPath": zod.string().regex(createBillingCheckoutBodyReturnPathRegExp).default(createBillingCheckoutBodyReturnPathDefault)
-})
-
-export const CreateBillingCheckoutResponse = zod.object({
-  "url": zod.string().url()
-})
-
-
-/**
- * @summary Create a Stripe subscription management portal session
- */
-export const CreateBillingPortalResponse = zod.object({
-  "url": zod.string().url()
 })
 
 

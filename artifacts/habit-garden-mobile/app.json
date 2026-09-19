@@ -8,7 +8,8 @@
     "scheme": "habitgarden",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.habitgarden.app"
     },
     "android": {
       "package": "com.habitgarden.app",

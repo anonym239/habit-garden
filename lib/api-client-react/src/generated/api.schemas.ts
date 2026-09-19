@@ -70,12 +70,3 @@ export interface BillingStatus {
   isPro: boolean;
 }
 
-export interface BillingRedirectInput {
-  /** @pattern ^/ */
-  returnPath?: string;
-}
-
-export interface BillingRedirect {
-  url: string;
-}
-

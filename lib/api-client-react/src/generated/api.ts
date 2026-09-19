@@ -20,8 +20,6 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  BillingRedirect,
-  BillingRedirectInput,
   BillingStatus,
   GardenInput,
   GardenSync,
@@ -129,13 +127,6 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
   return withQueryKey(query, queryOptions.queryKey);
 }
-
-
-
-
-
-
-
 export const getGetGardenUrl = (platform: 'web' | 'mobile',) => {
 
 
@@ -476,7 +467,7 @@ export const getGetBillingStatusUrl = () => {
 }
 
 /**
- * @summary Check whether the signed-in user has an active Stripe Pro subscription
+ * @summary Check whether the signed-in user has an active app-store Pro subscription
  */
 export const getBillingStatus = async ( options?: Parameters<typeof customFetch>[1]): Promise<BillingStatus> => {
 
@@ -523,7 +514,7 @@ export type GetBillingStatusQueryError = ErrorType<void>
 
 
 /**
- * @summary Check whether the signed-in user has an active Stripe Pro subscription
+ * @summary Check whether the signed-in user has an active app-store Pro subscription
  */
 
 export function useGetBillingStatus<TData = Awaited<ReturnType<typeof getBillingStatus>>, TError = ErrorType<void>>(
@@ -537,172 +528,3 @@ export function useGetBillingStatus<TData = Awaited<ReturnType<typeof getBilling
 
   return withQueryKey(query, queryOptions.queryKey);
 }
-
-
-
-
-
-
-
-export const getCreateBillingCheckoutUrl = () => {
-
-
-
-
-  return `/api/billing/checkout`
-}
-
-/**
- * @summary Create a secure hosted Stripe Checkout session
- */
-export const createBillingCheckout = async (billingRedirectInput?: BillingRedirectInput, options?: Parameters<typeof customFetch>[1]): Promise<BillingRedirect> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return customFetch<BillingRedirect>(getCreateBillingCheckoutUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(billingRedirectInput)
-  }
-);}
-
-
-
-
-
-export const getCreateBillingCheckoutMutationKey = () => ['createBillingCheckout'] as const;
-
-export const getCreateBillingCheckoutMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillingCheckout>>, TError,CreateBillingCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createBillingCheckout>>, TError,CreateBillingCheckoutMutationVariables, TContext> => {
-
-const mutationKey = getCreateBillingCheckoutMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBillingCheckout>>, CreateBillingCheckoutMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  createBillingCheckout(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateBillingCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof createBillingCheckout>>>
-    export type CreateBillingCheckoutMutationBody = BodyType<BillingRedirectInput> | undefined
-    export type CreateBillingCheckoutMutationError = ErrorType<void>
-    export type CreateBillingCheckoutMutationVariables = {data?: BodyType<BillingRedirectInput>}
-
-    /**
- * @summary Create a secure hosted Stripe Checkout session
- */
-export const useCreateBillingCheckout = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillingCheckout>>, TError,CreateBillingCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof createBillingCheckout>>,
-        TError,
-        CreateBillingCheckoutMutationVariables,
-        TContext
-      > => {
-      return useMutation(getCreateBillingCheckoutMutationOptions(options));
-    }
-
-export const getCreateBillingPortalUrl = () => {
-
-
-
-
-  return `/api/billing/portal`
-}
-
-/**
- * @summary Create a Stripe subscription management portal session
- */
-export const createBillingPortal = async ( options?: Parameters<typeof customFetch>[1]): Promise<BillingRedirect> => {
-
-  return customFetch<BillingRedirect>(getCreateBillingPortalUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getCreateBillingPortalMutationKey = () => ['createBillingPortal'] as const;
-
-export const getCreateBillingPortalMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillingPortal>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof createBillingPortal>>, TError,void, TContext> => {
-
-const mutationKey = getCreateBillingPortalMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBillingPortal>>, void> = () => {
-
-
-          return  createBillingPortal(requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateBillingPortalMutationResult = NonNullable<Awaited<ReturnType<typeof createBillingPortal>>>
-
-    export type CreateBillingPortalMutationError = ErrorType<void>
-
-
-    /**
- * @summary Create a Stripe subscription management portal session
- */
-export const useCreateBillingPortal = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBillingPortal>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof createBillingPortal>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getCreateBillingPortalMutationOptions(options));
-    }
-

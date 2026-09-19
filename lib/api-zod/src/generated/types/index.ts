@@ -6,8 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './billingRedirect';
-export * from './billingRedirectInput';
 export * from './billingStatus';
 export * from './gardenInput';
 export * from './gardenInputData';

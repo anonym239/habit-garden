@@ -17,7 +17,7 @@ tags:
   - name: revenue
     description: Transparent community revenue
   - name: billing
-    description: Secure Stripe Pro billing
+    description: App-store Pro entitlement status
 paths:
   /healthz:
     get:
@@ -105,7 +105,7 @@ paths:
     get:
       operationId: getBillingStatus
       tags: [billing]
-      summary: Check whether the signed-in user has an active Stripe Pro subscription
+      summary: Check whether the signed-in user has an active app-store Pro subscription
       responses:
         "200":
           description: Billing status
@@ -113,40 +113,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BillingStatus"
-        "401":
-          description: Authentication required
-  /billing/checkout:
-    post:
-      operationId: createBillingCheckout
-      tags: [billing]
-      summary: Create a secure hosted Stripe Checkout session
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BillingRedirectInput"
-      responses:
-        "200":
-          description: Checkout redirect URL
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingRedirect"
-        "401":
-          description: Authentication required
-  /billing/portal:
-    post:
-      operationId: createBillingPortal
-      tags: [billing]
-      summary: Create a Stripe subscription management portal session
-      responses:
-        "200":
-          description: Portal redirect URL
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BillingRedirect"
         "401":
           description: Authentication required
 components:
@@ -239,18 +205,4 @@ components:
       properties:
         isPro:
           type: boolean
-    BillingRedirectInput:
-      type: object
-      properties:
-        returnPath:
-          type: string
-          pattern: "^/"
-          default: /upgrade
-    BillingRedirect:
-      type: object
-      required: [url]
-      properties:
-        url:
-          type: string
-          format: uri
 

@@ -9,7 +9,7 @@ import { checkIsComplete, createId, currentStreak, dateFromKey, exportGarden, is
 import { ClerkProvider, SignIn, SignUp, Show, useUser, useClerk, useAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
-import { useReviewHabits, useGetRevenue, useSaveGarden, useGetGarden, getGetGardenQueryKey, useGetBillingStatus, getGetBillingStatusQueryKey, useCreateBillingCheckout, useCreateBillingPortal, setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
+import { useReviewHabits, useGetRevenue, useSaveGarden, useGetGarden, getGetGardenQueryKey, useGetBillingStatus, getGetBillingStatusQueryKey, setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 
 const queryClient = new QueryClient();
 setBaseUrl(import.meta.env.VITE_API_BASE_URL || null);
@@ -357,36 +357,6 @@ function UpgradePage() {
   const { data: revenue, isLoading } = useGetRevenue();
   const { isSignedIn } = useUser();
   const billing = useGetBillingStatus({ query: { queryKey: getGetBillingStatusQueryKey(), enabled: !!isSignedIn } });
-  const checkout = useCreateBillingCheckout();
-  const portal = useCreateBillingPortal();
-  const queryClient = useQueryClient();
-  const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
-
-  useEffect(() => {
-    if (checkoutResult === 'success' && isSignedIn) {
-      const timer = window.setInterval(() => {
-        void queryClient.invalidateQueries({ queryKey: ['/api/billing/status'] });
-      }, 3000);
-      const stop = window.setTimeout(() => window.clearInterval(timer), 30000);
-      return () => {
-        window.clearInterval(timer);
-        window.clearTimeout(stop);
-      };
-    }
-    return undefined;
-  }, [checkoutResult, isSignedIn, queryClient]);
-
-  const beginCheckout = async () => {
-    const result = await checkout.mutateAsync({
-      data: { returnPath: `${basePath}/upgrade` || '/upgrade' },
-    });
-    window.location.assign(result.url);
-  };
-
-  const manageSubscription = async () => {
-    const result = await portal.mutateAsync();
-    window.location.assign(result.url);
-  };
 
   return (
     <div className="page-enter max-w-3xl">
@@ -415,17 +385,14 @@ function UpgradePage() {
              <li className="flex items-center gap-3"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground"><Star size={14} strokeWidth={3} /></span> Support indie development</li>
            </ul>
             <div className="mt-10 space-y-3">
-              {checkoutResult === 'success' && <p className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm font-bold text-primary">Danke! Deine Zahlung wird bestätigt. Pro wird automatisch aktiviert.</p>}
-              {checkoutResult === 'cancelled' && <p className="rounded-xl border border-border bg-muted p-3 text-sm text-muted-foreground">Der Checkout wurde abgebrochen. Es wurde nichts berechnet.</p>}
               {!isSignedIn ? (
-                <Link href="/sign-in" className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">Anmelden und Pro freischalten</Link>
+                 <Link href="/sign-in" className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">Anmelden und Pro-Status prüfen</Link>
               ) : billing.data?.isPro ? (
-                <button type="button" onClick={manageSubscription} disabled={portal.isPending} className="w-full rounded-xl border border-primary px-4 py-3 text-sm font-bold text-primary transition hover:bg-primary/5 disabled:opacity-60">{portal.isPending ? 'Wird geöffnet…' : 'Abo sicher verwalten'}</button>
+                 <p className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-sm font-bold text-primary">Pro ist für dein Konto aktiv.</p>
               ) : (
-                <button type="button" onClick={beginCheckout} disabled={checkout.isPending} className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 disabled:opacity-60">{checkout.isPending ? 'Sicherer Checkout wird geöffnet…' : 'Mit Karte oder SEPA upgraden'}</button>
+                 <p className="rounded-xl border border-border bg-muted p-3 text-center text-sm font-bold text-foreground">Kaufe Pro in der Android- oder iPhone-App.</p>
               )}
-              {(checkout.isError || portal.isError) && <p className="text-xs font-semibold text-destructive">Der Zahlungsdienst ist gerade nicht erreichbar. Bitte versuche es später erneut.</p>}
-              <p className="text-xs leading-5 text-muted-foreground">Die Zahlung erfolgt auf einer sicheren Stripe-Seite. Habit Garden erhält und speichert keine Karten- oder Bankdaten. Jederzeit kündbar.</p>
+               <p className="text-xs leading-5 text-muted-foreground">Zahlungen und Abos werden ausschließlich über Google Play oder den Apple App Store verwaltet. Melde dich in der App und auf der Website mit demselben Konto an, damit Pro überall erkannt wird.</p>
             </div>
          </Card>
       </div>
@@ -434,7 +401,7 @@ function UpgradePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8">
           <div>
              <h3 className="font-display text-lg font-extrabold tracking-tight">Spendenbox & Einnahmen</h3>
-             <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-sm">Alle über Pro und die Android-Spendenbox eingegangenen Einnahmen werden transparent zusammengefasst. Die Auszahlung läuft über Google Play an das hinterlegte Händlerkonto.</p>
+             <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-sm">Alle über Pro eingegangenen Einnahmen werden transparent zusammengefasst. Zahlungen und Auszahlungen laufen ausschließlich über Google Play und den Apple App Store.</p>
           </div>
           <div className="flex gap-3 sm:gap-4 shrink-0">
             <div className="rounded-2xl bg-muted/50 p-4 text-center min-w-[110px]">
