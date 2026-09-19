@@ -61,7 +61,7 @@ Open the mobile preview with Expo Go during development. The Expo project uses
 Installable Android APKs are built by the `Android APK Release` GitHub Actions
 workflow and attached to the matching entry under GitHub Releases. The workflow
 requires `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` and
-`EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` as GitHub Actions secrets.
+`EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` as GitHub Actions variables.
 
 ## Privacy
 
