@@ -1,0 +1,107 @@
+name: Android APK Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the v prefix
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    name: Build and publish APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      EXPO_PUBLIC_DOMAIN: open-habit-tracker.replit.app
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: ${{ secrets.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify required configuration
+        run: |
+          test -n "$EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY" || {
+            echo "::error::Missing GitHub secret EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY"
+            exit 1
+          }
+          test -n "$EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY" || {
+            echo "::error::Missing GitHub secret EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY"
+            exit 1
+          }
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Android project
+        working-directory: artifacts/habit-garden-mobile
+        run: pnpm exec expo prebuild --platform android --no-install
+
+      - name: Build installable release APK
+        working-directory: artifacts/habit-garden-mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Prepare release file
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          cp artifacts/habit-garden-mobile/android/app/build/outputs/apk/release/app-release.apk \
+            "habit-garden-${VERSION}.apk"
+          sha256sum "habit-garden-${VERSION}.apk" > "habit-garden-${VERSION}.apk.sha256"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: habit-garden-${{ inputs.version }}-apk
+          path: |
+            habit-garden-${{ inputs.version }}.apk
+            habit-garden-${{ inputs.version }}.apk.sha256
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              "habit-garden-${VERSION}.apk" \
+              "habit-garden-${VERSION}.apk.sha256" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              "habit-garden-${VERSION}.apk" \
+              "habit-garden-${VERSION}.apk.sha256" \
+              --title "Habit Garden ${TAG}" \
+              --notes "Installierbare Android-Version von Habit Garden. Android kann beim direkten Download eine Sicherheitswarnung anzeigen, da die App außerhalb von Google Play installiert wird."
+          fi
