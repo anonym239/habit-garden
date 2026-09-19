@@ -12,6 +12,8 @@ device and the core experience does not require an account or paid service.
 - Light and dark themes
 - JSON backup export and import on the web
 - Responsive web app and native Expo Android app
+- Secure Pro checkout on the web through Stripe (card and SEPA)
+- Google Play / RevenueCat Pro purchases in the Android app
 - No ads, tracking or mandatory account
 
 ## Project structure
@@ -35,6 +37,25 @@ Use the configured Replit workflows to run both applications locally.
 
 The included `netlify.toml` builds and publishes the web app automatically.
 Import this repository in Netlify and accept the detected settings.
+
+Netlify hosts the static web interface only. The API server must remain on a
+server runtime such as a published Replit deployment because it performs
+authenticated cloud sync, AI requests and secure Stripe operations.
+
+Configure these Netlify environment variables before publishing:
+
+- `VITE_API_BASE_URL` — the published API origin, for example
+  `https://your-api.example.com` (without `/api`)
+- `VITE_CLERK_PUBLISHABLE_KEY` — the production Clerk publishable key
+- `VITE_CLERK_PROXY_URL` — the Clerk proxy URL exposed by the published API
+
+Never add Stripe secret keys, DeepInfra keys or Clerk secret keys to Netlify's
+frontend variables. Stripe Checkout is created by the API through the protected
+Replit Stripe connection, so payment details never pass through Habit Garden.
+
+The connected Stripe account currently contains the test product
+`Habit Garden Pro` at `2.99 EUR/month`. Complete Stripe account verification
+and switch the connected account to live mode before accepting real payments.
 
 ## Android
 

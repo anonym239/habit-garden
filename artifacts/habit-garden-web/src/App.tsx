@@ -9,9 +9,10 @@ import { checkIsComplete, createId, currentStreak, dateFromKey, exportGarden, is
 import { ClerkProvider, SignIn, SignUp, Show, useUser, useClerk, useAuth } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
-import { useReviewHabits, useGetRevenue, useSaveGarden, useGetGarden, getGetGardenQueryKey, useGetBillingStatus, getGetBillingStatusQueryKey, useCreateBillingCheckout, useCreateBillingPortal, setAuthTokenGetter } from '@workspace/api-client-react';
+import { useReviewHabits, useGetRevenue, useSaveGarden, useGetGarden, getGetGardenQueryKey, useGetBillingStatus, getGetBillingStatusQueryKey, useCreateBillingCheckout, useCreateBillingPortal, setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 
 const queryClient = new QueryClient();
+setBaseUrl(import.meta.env.VITE_API_BASE_URL || null);
 const iconOptions = [{ value: 'sprout', icon: Sprout }, { value: 'sun', icon: Sun }, { value: 'droplet', icon: Droplets }, { value: 'book-open', icon: BookOpen }, { value: 'leaf', icon: Leaf }];
 const initialForm = { name: '', description: '', color: '#769b82', icon: 'sprout', frequency: 'daily' as HabitFrequency, targetPerWeek: 7 };
 
